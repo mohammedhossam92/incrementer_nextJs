@@ -24,10 +24,10 @@ export function CounterDashboard() {
     // Set up real-time subscription to categories
     const channel = supabase
       .channel('categories-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'categories' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'categories'
       }, handleCategoryChange)
       .subscribe();
 
@@ -48,11 +48,11 @@ export function CounterDashboard() {
         .from('categories')
         .select('*')
         .order('name');
-      
+
       if (error) throw error;
-      
+
       setCategories(data || []);
-      
+
       // Set first category as selected if we have categories and none is selected
       if (data && data.length > 0 && !selectedCategory) {
         setSelectedCategory(data[0]);
@@ -76,18 +76,18 @@ export function CounterDashboard() {
 
   const checkForNewDay = async () => {
     const today = new Date().toISOString().split('T')[0];
-    
+
     try {
       const { data } = await supabase
         .from('categories')
         .select('id, last_click_date');
-      
+
       if (data) {
         for (const category of data) {
           if (category.last_click_date !== today) {
             await supabase
               .from('categories')
-              .update({ 
+              .update({
                 clicks_today: 0,
                 last_click_date: today
               })
@@ -114,20 +114,20 @@ export function CounterDashboard() {
 
   const handleCategoryDeleted = async () => {
     if (!selectedCategory) return;
-    
+
     try {
       const { error } = await supabase
         .from('categories')
         .delete()
         .eq('id', selectedCategory.id);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Category deleted",
         description: `${selectedCategory.name} has been deleted.`
       });
-      
+
       setSelectedCategory(null);
       fetchCategories();
     } catch (error: any) {
@@ -143,15 +143,15 @@ export function CounterDashboard() {
   const totalClicks = categories.reduce((sum, cat) => sum + cat.clicks_today, 0);
   const totalValue = categories.reduce((sum, cat) => sum + cat.value, 0);
   const avgValue = categories.length > 0 ? totalValue / categories.length : 0;
-  const mostActiveCategory = categories.reduce((prev, current) => 
-    (current.clicks_today > (prev?.clicks_today || 0)) ? current : prev, 
+  const mostActiveCategory = categories.reduce((prev, current) =>
+    (current.clicks_today > (prev?.clicks_today || 0)) ? current : prev,
     categories[0]
   );
 
   return (
     <div className="container max-w-6xl mx-auto space-y-6">
       <AppHeader />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
           <Card>
@@ -179,31 +179,31 @@ export function CounterDashboard() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <CounterTable 
-                  categories={categories} 
-                  selectedCategoryId={selectedCategory?.id} 
+                <CounterTable
+                  categories={categories}
+                  selectedCategoryId={selectedCategory?.id}
                   onSelect={handleCategorySelect}
                 />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className="lg:col-span-4 space-y-6">
-          <CategorySelect 
+          <CategorySelect
             categories={categories}
             selectedCategory={selectedCategory}
             onSelect={handleCategorySelect}
             onDelete={handleCategoryDeleted}
           />
-          
+
           {selectedCategory && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <CounterControls 
+              <CounterControls
                 category={selectedCategory}
                 onUpdate={fetchCategories}
               />
@@ -213,7 +213,7 @@ export function CounterDashboard() {
       </div>
 
       {/* Statistics Section */}
-      <Card className="mt-8">
+      {/* <Card className="mt-8">
         <CardHeader>
           <CardTitle>Counter Statistics</CardTitle>
         </CardHeader>
@@ -240,7 +240,7 @@ export function CounterDashboard() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
